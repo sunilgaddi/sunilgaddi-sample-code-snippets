@@ -26,6 +26,13 @@ class Customer:
     
     def get_balance(self):
         return f"Current balance: {self.balance}"
+    
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "account_number": self.account_number,
+            "balance": self.balance
+        }
 
 class Bank:
     def __init__(self):
@@ -34,14 +41,16 @@ class Bank:
     
     def load_data(self):
         try:
-            with open('bank_data.json', 'r') as file:
-                self.customers = json.load(file)
+            with open('/Users/sunil/Desktop/Collection/test_cases/bank_data.json', 'r') as file:
+                data = json.load(file)
+                for account_number, customer_data in data.items():
+                    self.customers[int(account_number)] = Customer(**customer_data)
         except FileNotFoundError:
             pass
     
     def save_data(self):
-        with open('bank_data.json', 'w') as file:
-            json.dump(self.customers, file)
+        with open('/Users/sunil/Desktop/Collection/test_cases/bank_data.json', 'w') as file:
+            json.dump({str(account_number): customer.to_dict() if isinstance(customer, Customer) else customer for account_number, customer in self.customers.items()}, file)
     
     def create_account(self, name):
         account_number = random.randint(10000, 99999)
@@ -56,23 +65,3 @@ class Bank:
             return self.customers[account_number]
         else:
             return None
-
-# Example usage
-bank = Bank()
-
-# Create accounts
-print(bank.create_account("Alice"))
-print(bank.create_account("Bob"))
-
-# Deposit and withdraw
-customer1 = bank.get_customer(12345)
-print(customer1.deposit(1000))
-print(customer1.withdraw(500))
-print(customer1.get_balance())
-
-# Handling non-existent account
-customer2 = bank.get_customer(99999)
-if customer2:
-    print(customer2.get_balance())
-else:
-    print("Account not found.")
